@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welfare Party Collection Dashboard 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-100 font-sans">
+
+    <header class="dashboard-header text-white p-6 shadow-xl text-center">
+        <h1 class="text-xl md:text-2xl font-black uppercase tracking-widest">
+            Welfare Party Malappuram Mandalam Collection-2026
+        </h1>
+    </header>
+
+    <main class="p-4 md:p-8 max-w-7xl mx-auto">
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            <div class="bg-white p-6 rounded-2xl border-l-8 border-blue-900 shadow-md col-span-full lg:col-span-2 transition-transform hover:scale-[1.01]">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <p class="text-gray-500 text-xs font-bold uppercase tracking-widest">Total Collected</p>
+                        <h2 id="total-collected" class="text-3xl md:text-4xl font-black text-gray-800">₹ 0.00</h2>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-gray-500 text-xs font-bold uppercase tracking-widest">Target</p>
+                        <h2 id="total-target" class="text-xl md:text-2xl font-bold text-gray-600">₹ 0.00</h2>
+                    </div>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-5 overflow-hidden shadow-inner">
+                    <div id="main-progress" class="progress-bar-fill h-full transition-all duration-1000" style="width: 0%"></div>
+                </div>
+                <div class="flex justify-between mt-2">
+                    <span class="text-xs font-bold text-gray-500 uppercase">Collection Progress</span>
+                    <span id="total-percentage" class="font-black text-blue-900">0%</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4 col-span-full lg:col-span-1">
+                <div class="bg-green-50 border-2 border-green-500 p-4 rounded-2xl text-center shadow-sm">
+                    <span class="text-[10px] font-black text-green-700 uppercase block mb-1 tracking-widest">Top Panchayath</span>
+                    <p id="top-panchayat" class="font-black text-lg text-green-900 leading-tight">--</p>
+                    <p id="top-panchayat-val" class="text-xs font-bold text-green-600 mt-1">0% Completed</p>
+                </div>
+                <div class="bg-red-50 border-2 border-red-500 p-4 rounded-2xl text-center shadow-sm">
+                    <span class="text-[10px] font-black text-red-700 uppercase block mb-1 tracking-widest">Needs Attention</span>
+                    <p id="low-panchayat" class="font-black text-lg text-red-900 leading-tight">--</p>
+                    <p id="low-panchayat-val" class="text-xs font-bold text-red-600 mt-1">0% Completed</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl shadow-md mb-10 border border-gray-200">
+            <h3 class="font-black mb-6 text-gray-700 uppercase text-xs tracking-widest border-b pb-2">പഞ്ചായത്ത് തിരിച്ചുള്ള നിലവാരം (Chart)</h3>
+            <div class="h-80 w-full">
+                <canvas id="panchayatChart"></canvas>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-200 mb-10">
+            <div class="bg-blue-900 text-white p-4 font-black text-center uppercase text-xs tracking-widest">Panchayath Wise Summary</div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-gray-50 text-[10px] uppercase text-gray-500 border-b">
+                        <tr>
+                            <th class="p-4">Panchayath</th>
+                            <th class="p-4">Target Amount</th>
+                            <th class="p-4">Collected</th>
+                            <th class="p-4 text-right">Achievement %</th>
+                        </tr>
+                    </thead>
+                    <tbody id="panchayat-table-body" class="text-sm divide-y">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-200">
+            <div class="bg-blue-600 text-white p-4 font-black text-center uppercase text-xs tracking-widest">Unit Wise Summary</div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-gray-50 text-[10px] uppercase text-gray-500 border-b">
+                        <tr>
+                            <th class="p-4">Unit Name</th>
+                            <th class="p-4">Panchayath</th>
+                            <th class="p-4">Target</th>
+                            <th class="p-4">Collected</th>
+                            <th class="p-4 text-right">Achievement %</th>
+                        </tr>
+                    </thead>
+                    <tbody id="unit-table-body" class="text-sm divide-y text-gray-700">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <footer class="p-8 text-center text-gray-400 text-xs">
+        &copy; 2026 Welfare Party Mandalam Dashboard | Real-time Data
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
