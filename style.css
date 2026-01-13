@@ -1,31 +1,24 @@
-/* Custom Cinematic Effects */
 .dashboard-header {
     background: linear-gradient(135deg, #001529 0%, #002147 100%);
 }
 
 .progress-bar-fill {
     background: linear-gradient(90deg, #facc15 0%, #fb923c 50%, #ef4444 100%);
-    box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
 }
 
-/* Table Hover Effect */
-tbody tr {
-    transition: background-color 0.2s ease;
+.stat-tile { transition: transform 0.2s; }
+
+.unit-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
 }
 
-tbody tr:hover {
-    background-color: #f8fafc;
+.unit-collection-amt {
+    font-size: 1.1rem;
+    font-weight: 900;
+    color: #1e40af; /* Blue-800 */
 }
 
-/* Scrollbar Styling */
-::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-}
-::-webkit-scrollbar-track {
-    background: #f1f1f1;
-}
-::-webkit-scrollbar-thumb {
-    background: #002147;
-    border-radius: 10px;
-}
+.hidden { display: none; }
