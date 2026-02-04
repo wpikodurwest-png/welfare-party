@@ -45,64 +45,110 @@ async function fetchData() {
 }
 
 function updateUI(panData, unitData) {
-    const sortedPan = Object.values(panData).map(p => ({
-        ...p, percent: p.target > 0 ? ((p.coll/p.target)*100).toFixed(1) : 0
-    })).sort((a,b) => b.percent - a.percent);
+    // Dropdown selector value
+    const sortValue = document.getElementById('sort-selector').value;
 
-    const sortedUnits = Object.values(unitData).map(u => ({
-        ...u, percent: u.target > 0 ? ((u.coll/u.target)*100).toFixed(1) : 0
-    })).sort((a,b) => b.percent - a.percent);
+    // Process & Sort Panchayats
+  
+    let sortedPan = Object.values(panData).map(p => ({
+        ...p, percent: p.target > 0 ? parseFloat(((p.coll/p.target)*100).toFixed(1)) : 0
+    }));
 
+    if (sortValue === 'percent-desc') sortedPan.sort((a, b) => b.percent - a.percent);
+    else if (sortValue === 'percent-asc') sortedPan.sort((a, b) => a.percent - b.percent);
+    else if (sortValue === 'amount-desc') sortedPan.sort((a, b) => b.coll - a.coll);
+    else if (sortValue === 'amount-asc') sortedPan.sort((a, b) => a.coll - b.coll);
+  
+
+    // Process & Sort Units
+    let sortedUnits = Object.values(unitData).map(u => ({
+        ...u, percent: u.target > 0 ? parseFloat(((u.coll/u.target)*100).toFixed(1)) : 0
+    }));
+
+    if (sortValue.includes('amount')) {
+        sortedUnits.sort((a, b) => sortValue === 'amount-desc' ? b.coll - a.coll : a.coll - b.coll);
+    } else {
+        sortedUnits.sort((a, b) => sortValue === 'percent-desc' ? b.percent - a.percent : a.percent - b.percent);
+    }
+
+    // Overall Stats
     let tTarget = sortedPan.reduce((a, b) => a + b.target, 0);
     let tColl = sortedPan.reduce((a, b) => a + b.coll, 0);
     let overallPercent = tTarget > 0 ? ((tColl/tTarget)*100).toFixed(1) : 0;
 
-    // Update Overall Stats
     document.getElementById('total-collected').innerText = '₹ ' + tColl.toLocaleString('en-IN');
     document.getElementById('total-target').innerText = '₹ ' + tTarget.toLocaleString('en-IN');
     document.getElementById('total-percentage').innerText = overallPercent + '%';
     document.getElementById('main-progress').style.width = overallPercent + '%';
 
-    // Tiles
-    const setTile = (id, barId, data) => {
-        if(!data) return;
-        document.getElementById(id).innerText = data.name;
-        document.getElementById(barId).style.width = Math.min(data.percent, 100) + '%';
-    };
-    setTile('top-panchayat', 'top-pan-bar', sortedPan[0]);
-    setTile('top-unit', 'top-unit-bar', sortedUnits[0]);
-    setTile('low-unit', 'low-unit-bar', sortedUnits[sortedUnits.length-1]);
-    setTile('low-panchayat', 'low-pan-bar', sortedPan[sortedPan.length-1]);
+    // Render Panchayat Table
+    document.getElementById('panchayat-table-body').innerHTML = sortedPan.map((p, index) => {
+        const unitsInPan = sortedUnits.filter(u => PANCHAYAT_MAP[u.name] === p.name);
+        return `
+            <tr class="hover:bg-gray-50 cursor-pointer border-b transition-all" onclick="toggleRow('pan-units-${index}')">
+                <td class="p-3">
+                    <div class="flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                        <span class="font-bold text-blue-900 text-sm md:text-base">${p.name}</span>
+                    </div>
+                </td>
+                <td class="p-3 text-xs md:text-sm text-gray-500 font-medium">₹${p.target.toLocaleString()}</td>
+                <td class="p-3 font-bold text-gray-800 text-sm md:text-base">₹${p.coll.toLocaleString()}</td>
+                <td class="p-3 text-right">
+                    <span class="px-2 py-1 rounded text-[10px] md:text-xs font-bold ${getStatusColor(p.percent)}">
+                        ${p.percent}%
+                    </span>
+                </td>
+            </tr>
+            <tr id="pan-units-${index}" class="hidden bg-blue-50/50">
+                <td colspan="4" class="p-0">
+                    <div class="overflow-x-auto">
+                        <table class="w-full border-l-4 border-blue-900">
+                            <thead class="bg-gray-100 text-gray-600 uppercase text-[10px]">
+                                <tr>
+                                    <th class="py-2 pl-8 text-left font-semibold">Unit</th>
+                                    <th class="py-2 text-left font-semibold">Target</th>
+                                    <th class="py-2 text-left font-semibold">Collected</th>
+                                    <th class="py-2 text-right pr-4 font-semibold">Ach %</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                ${unitsInPan.map(u => `
+                                    <tr class="hover:bg-white transition-colors">
+                                        <td class="py-2 pl-8 text-gray-700 text-xs md:text-sm font-medium">${u.name}</td>
+                                        <td class="py-2 text-gray-500 text-xs">₹${u.target.toLocaleString()}</td>
+                                        <td class="py-2 font-bold text-blue-800 text-xs md:text-sm">₹${u.coll.toLocaleString()}</td>
+                                        <td class="py-2 text-right pr-4">
+                                            <span class="px-2 py-0.5 rounded text-[9px] md:text-xs font-bold ${getStatusColor(u.percent)}">
+                                                ${u.percent}%
+                                            </span>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
 
-    // Re-render Panchayat Table
-    document.getElementById('panchayat-table-body').innerHTML = sortedPan.map(p => `
-        <tr>
-            <td class="p-3 font-bold text-blue-900">${p.name}</td>
-            <td class="p-3">₹${p.target.toLocaleString()}</td>
-            <td class="p-3 font-black text-gray-800">₹${p.coll.toLocaleString()}</td>
-            <td class="p-3 text-right">
-                <span class="px-2 py-0.5 rounded text-white text-[9px] font-black ${p.percent >= 80 ? 'bg-green-600' : 'bg-orange-500'}">${p.percent}%</span>
-            </td>
-        </tr>
-    `).join('');
-
-    // Unit Table with Larger Collection Text
+    // Render Bottom Unit Table with History
     document.getElementById('unit-table-body').innerHTML = sortedUnits.map((u, i) => `
         <tr class="hover:bg-gray-50 cursor-pointer" onclick="toggleRow('hist-${i}')">
             <td class="p-4">
                 <div class="font-black text-gray-800 text-sm">${u.name}</div>
-                <div class="unit-collection-amt mt-1">₹${u.coll.toLocaleString()}</div>
+                <div class="text-blue-900 font-bold text-base mt-1">₹${u.coll.toLocaleString()}</div>
                 <div class="flex gap-3 mt-1 text-[10px] font-bold text-gray-500">
-                    <span class="bg-orange-50 px-1.5 rounded">സ്ക്വാഡ്: ${u.sT}</span>
-                    <span class="bg-green-50 px-1.5 rounded">വീട്: ${u.hT}</span>
+                    <span class="bg-orange-50 px-1.5 rounded text-orange-700">സ്ക്വാഡ്: ${u.sT}</span>
+                    <span class="bg-green-50 px-1.5 rounded text-green-700">വീട്: ${u.hT}</span>
                 </div>
             </td>
             <td class="p-4 text-right">
                 <div class="font-black text-lg ${u.percent >= 80 ? 'text-green-600' : 'text-orange-600'}">${u.percent}%</div>
                 <div class="text-[9px] text-gray-400 font-bold">Target: ₹${u.target.toLocaleString()}</div>
-                <div class="w-20 ml-auto bg-gray-200 h-1.5 rounded-full mt-1 overflow-hidden">
-                    <div class="h-full ${u.percent >= 80 ? 'bg-green-500' : 'bg-orange-500'}" style="width: ${Math.min(u.percent, 100)}%"></div>
-                </div>
             </td>
         </tr>
         <tr id="hist-${i}" class="hidden bg-gray-50">
@@ -113,7 +159,7 @@ function updateUI(panData, unitData) {
                             <tr><th class="p-2">തീയതി</th><th class="p-2">തുക</th><th class="p-2">സ്കോഡ്</th><th class="p-2">വീട്</th></tr>
                         </thead>
                         <tbody>
-                            ${u.history.map(h => `<tr><td class="p-2 border-t">${h.date}</td><td class="p-2 border-t font-bold">₹${h.amt}</td><td class="p-2 border-t">${h.squad}</td><td class="p-2 border-t">${h.house}</td></tr>`).join('')}
+                            ${u.history.map(h => `<tr><td class="p-2 border-t">${h.date}</td><td class="p-2 border-t font-bold text-blue-800">₹${h.amt}</td><td class="p-2 border-t">${h.squad}</td><td class="p-2 border-t">${h.house}</td></tr>`).join('')}
                         </tbody>
                     </table>
                 </div>
@@ -126,18 +172,85 @@ function updateUI(panData, unitData) {
 
 function toggleRow(id) { document.getElementById(id).classList.toggle('hidden'); }
 
-function renderChart(data) {
+function renderChart(data, isAmountSort = false) {
     const ctx = document.getElementById('panchayatChart').getContext('2d');
     if (window.myChart) window.myChart.destroy();
+
+    // നിറം തീരുമാനിക്കുന്നു: Amount ആണെങ്കിൽ പച്ച, അല്ലെങ്കിൽ നേവി ബ്ലൂ
+    const colorTop = isAmountSort ? '#16a34a' : '#1e3a8a'; // Green vs Navy
+    const colorBottom = isAmountSort ? '#4ade80' : '#60a5fa'; // Light Green vs Light Blue
+
+    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, colorTop);
+    gradient.addColorStop(1, colorBottom);
+
     window.myChart = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: data.map(p => p.name),
-            datasets: [{ label: '%', data: data.map(p => p.percent), backgroundColor: '#1e3a8a', borderRadius: 4 }]
+            datasets: [{
+                label: isAmountSort ? 'Amount' : '%',
+                data: data.map(p => isAmountSort ? p.coll : p.percent),
+                backgroundColor: gradient,
+                borderRadius: 5,
+                borderWidth: 0,
+                barPercentage: 0.6
+            }]
         },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false, 
+            plugins: { legend: { display: false } },
+            scales: { 
+                y: { 
+                    display: false, 
+                    beginAtZero: true,
+                    // Amount കാണിക്കുമ്പോൾ മുകളിൽ സ്പേസ് കിട്ടാൻ max സെറ്റ് ചെയ്യുന്നില്ല
+                    grace: '15%' 
+                },
+                x: {
+                    display: true,
+                    grid: { display: false },
+                    border: { display: false },
+                    ticks: {
+                        color: colorTop,
+                        font: { weight: 'bold', size: 10 }
+                    }
+                }
+            },
+            animation: {
+                onComplete: function() {
+                    let chartInstance = this, ctx = chartInstance.ctx;
+                    ctx.font = "bold 12px sans-serif"; 
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'bottom';
+                    ctx.fillStyle = colorTop;
+
+                    this.data.datasets.forEach(function(dataset, i) {
+                        let meta = chartInstance.getDatasetMeta(i);
+                        meta.data.forEach(function(bar, index) {
+                            let label;
+                            if (isAmountSort) {
+                                // തുക ലക്ഷം/ആയിരം രൂപയിൽ ചുരുക്കി കാണിക്കാൻ (ഉദാ: 1.2L അല്ലെങ്കിൽ 50K)
+                                let amt = data[index].coll;
+                                label = '₹' + (amt >= 100000 ? (amt/100000).toFixed(1) + 'L' : (amt/1000).toFixed(0) + 'K');
+                            } else {
+                                label = data[index].percent + '%';
+                            }
+                            ctx.fillText(label, bar.x, bar.y - 8);
+                        });
+                    });
+                }
+            }
+        }
     });
 }
 
-
-
+function getStatusColor(percent) {
+    if (percent <= 10) return 'bg-red-600 text-white';
+    if (percent <= 25) return 'bg-orange-500 text-white';
+    if (percent <= 50) return 'bg-yellow-400 text-black';
+    if (percent <= 75) return 'bg-lime-400 text-black';
+    if (percent <= 90) return 'bg-green-400 text-white';
+    return 'bg-green-800 text-white';
+}
